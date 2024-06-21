@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <head th:replace="~{comman :: html}"></head>
+</head>
+<body>
+
+<div class="card shadow h-100 opacity-75">
+    <div class="card-header">
+        <div class="d-flex">
+            <h2>Log Data</h2>
+
+        </div>
+    </div>
+    <div class="card-body table-data">
+        <div id="table-container">
+            <table class="table table-striped table-hover data-table tablbgclass" id="dataTable">
+                <thead class="table-head">
+                <th>S.No</th>
+                <th>Pages</th>
+                <th>Actions</th>
+                <th>Time & Date</th>
+                </thead>
+                <tbody class="">
+                <tr th:each="logdata,index: ${logdatas}">
+                    <td th:text="${index.index + 1}"></td> <!-- Adding 1 to start index from 1 instead of 0 -->
+                    <td th:text="${logdata.page}"></td>
+                    <td th:text="${logdata.action}"></td>
+                    <td th:text="${logdata.timeStamp}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

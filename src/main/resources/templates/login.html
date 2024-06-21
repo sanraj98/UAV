@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <head th:replace="~{comman :: html}"></head>
+    <link rel="stylesheet" th:href="@{/static/login.css}">
+</head>
+<body>
+<div class="body-wrap">
+    <div class='container d-flex align-items-center justify-content-center'>
+    <div class="card">
+    <div class="card-body text-light">
+        <div class="card-title text-center mt-5">
+            <h2 class='text-light'>Login here</h2>
+        </div>
+        <form action="#" th:action="@{/authenticateTheUser}"
+              method="POST" class='p-3'>
+            <!--<div class="input-group mb-3">
+            <input type="radio" class="btn-check" name="options-outlined" id="user" autocomplete="off" checked>
+            <label class="btn btn-outline-light custom-primary-color btn-label" for="user" style="width: 200px;">User</label> &lt;!&ndash; Adjust width here &ndash;&gt;
+
+            <input type="radio" class="btn-check" name="options-outlined" id="admin" autocomplete="off">
+            <label class="btn btn-outline-light custom-primary-color btn-label" for="admin" style="width: 200px;">Admin</label>
+            </div>-->
+            
+                <div class="form__group field">
+                    <input class='form__field' type="text" id="username" name="username"/>
+                    <label for="username" class='form__label'>User Name</label>
+                </div>
+                <div class="form__group field">
+                    <input class='form__field'  type="password" name="password" id='password' />
+                    <label class='form__label' for="password">Password</label>
+
+                </div>
+
+                <div class="text-center mt-3">
+                    <button >Login</button>
+                </div>
+
+        </form>
+    </div>
+</div>
+</div>
+</div>
+</body>
+</html>

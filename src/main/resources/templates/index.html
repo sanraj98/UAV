@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Uav Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="shortcut icon" href="../static/map.png" type="image/x-icon"/>
+    <style>
+        /* Style the map container */
+        #map {
+          height: 100vh;
+          width: 100%;
+        }
+        /* Custom styles for left-sliding modal */
+        .modal.left .modal-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            margin: 0;
+            height: 100%;
+            width: calc(50% - 16px); /* Adjust this value according to your needs */
+            max-width: 300px;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-out;
+        }
+
+        .modal.left.show .modal-dialog {
+            transform: translateX(0);
+        }
+
+        .modal.left .modal-content {
+            height: 100%;
+            border: 0;
+            border-radius: 0;
+        }
+
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<div class="modal left fade" id="droneModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Drone Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p><strong>UID:</strong> <span id="droneUId"></span></p>
+                <p><strong>Latitude:</strong> <span id="droneLat"></span></p>
+                <p><strong>Longitude:</strong> <span id="droneLon"></span></p>
+                <p><strong>GcsId:</strong> <span id="gcsId"></span></p>
+                <p><strong>Battery Percentage:</strong> <span id="bateryPercentage"></span></p>
+                <p><strong>Yaw:</strong> <span id="yaw"></span></p>
+                <p><strong>Vertical Speed :</strong> <span id="verticalSpeed"></span></p>
+                <p><strong>Ground Speed :</strong> <span id="groundSpeed"></span></p>
+                <p><strong> Dist To Mav :</strong> <span id="distToMav"></span></p>
+                <p><strong> Dist To wp :</strong> <span id="distToWp"></span></p>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(async function() {
+        var myIcon = L.icon({
+            iconUrl: '../static/drone.png',
+            iconSize: [45, 45],
+            iconAnchor: [22, 45], // Adjusted iconAnchor to center the icon
+            popupAnchor: [0, -45], // Adjusted popupAnchor to place the tooltip on top of the icon
+            tooltipAnchor: [0, -35] // Adjusted tooltipAnchor to position the tooltip above the icon
+        });
+
+        var map = L.map('map').setView([20.5937, 78.9629], 13);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© welcome'
+        }).addTo(map);
+
+        async function getDroneData() {
+            let url = "/api/get_dronelist";
+            try {
+                let response = await fetch(url);
+                let data = await response.json();
+                return data;
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        var markers = [];
+
+        async function updateMarkers() {
+            let coordinateDatas = await getDroneData();
+            coordinateDatas.forEach(async function(drone) {
+                let marker = markers.find(m => m.id === drone.id);
+                if (marker) {
+                        if ($('#droneModal').hasClass('show') && $('#droneUId').text() === drone.uid) {
+                            $('#droneUId').text(drone.uid);
+                            $('#droneLat').text(drone.lat);
+                            $('#droneLon').text(drone.lon);
+                            $('#gcsId').text(drone.gcsId);
+                            $('#bateryPercentage').text(drone.bateryPercentage);
+                            $('#yaw').text(drone.yaw);
+                            $('#verticalSpeed').text(drone.verticalSpeed);
+                            $('#distToMav').text(drone.distToMav);
+                            $('#groundSpeed').text(drone.groundSpeed);
+                            $('#distToWp').text(drone.distToWp);
+                        }
+                    // Smoothly move the marker to the new position
+                    await smoothMoveMarker(marker.instance, {lat: drone.lat, lng: drone.lon});
+                }
+            });
+        }
+
+        // Create markers and add them to the map
+        async function createMarkers() {
+            let droneDatas = await getDroneData();
+            droneDatas.forEach(drone => {
+                let marker = L.marker([drone.lat, drone.lon], { icon: myIcon }).addTo(map);
+                marker.bindTooltip("drone-" + drone.id, { direction: 'top'}); // Adjusted tooltip position
+                marker.on('click', function(e) {
+                    // Populate modal with drone details and show
+                    $('#droneUId').text(drone.uid);
+                    $('#droneLat').text(drone.lat);
+                    $('#droneLon').text(drone.lon);
+                    $('#gcsId').text(drone.gcsId);
+                    $('#bateryPercentage').text(drone.bateryPercentage);
+                    $('#yaw').text(drone.yaw);
+                    $('#verticalSpeed').text(drone.verticalSpeed);
+                    $('#distToMav').text(drone.distToMav);
+                    $('#groundSpeed').text(drone.groundSpeed);
+                    $('#distToWp').text(drone.distToWp);
+                    $('#droneModal').modal('show');
+                });
+                marker.on('mouseover', function(e) {
+                    this.openTooltip();
+                });
+                marker.on('mouseout', function(e) {
+                    this.closeTooltip();
+                });
+                markers.push({
+                    id: drone.id,
+                    instance: marker
+                });
+            });
+        }
+
+        // Call createMarkers once to initially create markers
+        await createMarkers();
+
+        // Call the updateMarkers function every 1 seconds
+        setInterval(updateMarkers, 800);
+
+        // Function to smoothly move marker to a new position
+        function smoothMoveMarker(marker, newLatLng) {
+            return new Promise(resolve => {
+                var oldLatLng = marker.getLatLng();
+                var frames = 120; // Number of animation frames
+                var duration = 1000; // Duration of animation in milliseconds
+
+                function animateMarker(frame) {
+                    var alpha = frame / frames;
+                    var interpolatedLatLng = lerp(oldLatLng, newLatLng, alpha);
+                    marker.setLatLng(interpolatedLatLng);
+
+                    if (frame < frames) {
+                        // Continue the animation
+                        setTimeout(function () {
+                            animateMarker(frame + 1);
+                        }, duration / frames);
+                    } else {
+                        resolve(); // Resolve the promise when animation completes
+                    }
+                }
+                animateMarker(0);
+            });
+        }
+
+        // Linear interpolation function for LatLng objects
+        function lerp(start, end, alpha) {
+            return {
+                lat: start.lat + (end.lat - start.lat) * alpha,
+                lng: start.lng + (end.lng - start.lng) * alpha,
+            };
+        }
+    });
+</script>
+
+</body>
+</html>

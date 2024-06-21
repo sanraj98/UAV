@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<div class="container">
+  <div class="input-group mt-5 mb-3 w-25">
+    <input type="number" id="count" class="form-control form-control-lg" placeholder="Enter the Count" aria-label="Recipient's username" aria-describedby="button-addon2">
+    <button class="btn btn-outline-primary" type="button" id="add">Add</button>
+  </div>
+
+   <!-- Container to hold dynamically added forms -->
+
+  <div class="card shadow-lg">
+    <div class="card-header">
+      <h2 class="card-title text-secondary" style="font-size: x-large !important;">Simulator Data</h2>
+    </div>
+    <div class="card-body">
+      <!-- Form template -->
+      <form id="master-form" action="#" onsubmit="saveAllDrones(event)" method="post">
+        <div id="forms-container"></div>
+        <!-- Dynamic forms will be added here -->
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function(){
+      $("#add").click(function(){
+          let count = parseInt($("#count").val());
+
+          // Clear existing forms
+          $("#forms-container").empty();
+
+          // Generate new forms based on count
+          for (let i = 0; i < count; i++) {
+              $("#forms-container").append(
+                  `<div class="col-md-12">
+                      <div class="card mb-3">
+                          <div class="card-body">
+                              <form class="row g-3 needs-validation drone-form" action="#" method="post" novalidate>
+                                  <div class="col-md-4">
+                                      <label for="doneId-${i}" class="form-label">Drone ID</label>
+                                      <input type="text" name="doneId" class="form-control" required>
+                                      <div class="valid-feedback">
+                                          Looks good!
+                                      </div>
+                                  </div>
+                                   <div class="col-md-4">
+                            <label for="lat" class="form-label">Latitude</label>
+                            <input type="text" class="form-control" id="lat" name="lat" required>
+                            <div class="valid-feedback">
+                              Looks good!
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <label for="lon" class="form-label">Longtitude</label>
+                            <input type="text" class="form-control" id="lon" name="lon" required>
+                            <div class="invalid-feedback">
+                              Please choose a username.
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <label for="alti" class="form-label">Altitude</label>
+                            <input type="text" class="form-control" id="alti" name="alti" required>
+                            <div class="invalid-feedback">
+                              Please provide a valid city.
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <label for="gcsId" class="form-label">Gcs Id</label>
+                            <input  type="text" class="form-control" id="gcsId" name="gcsId" required/>
+                            <div class="invalid-feedback">
+                              Please select a valid state.
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <label for="batrypercentage" class="form-label">Battery Percentage</label>
+                            <input type="text" class="form-control" id="batrypercentage" name="batrypercentage" required>
+                            <div class="invalid-feedback">
+                              Please provide a valid zip.
+                            </div>
+                          </div>
+
+                          <div class="col-md-4">
+                            <label for="gspeed" class="form-label">Ground Speed</label>
+                            <input type="text" class="form-control" id="gspeed" name="gspeed" required>
+                            <div class="invalid-feedback">
+                              Please select a valid state.
+                            </div>
+                          </div>
+
+                          <div class="col-md-4">
+                            <label for="vspeed" class="form-label">Vertical Speed</label>
+                            <input type="text" class="form-control" id="vspeed" name="vspeed" required>
+                            <div class="invalid-feedback">
+                              Please provide a valid zip.
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <label for="yaw" class="form-label">Yaw</label>
+                            <input type="text" class="form-control" id="yaw" name="yaw" required>
+                            <div class="invalid-feedback">
+                              Please provide a valid zip.
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <label for="distToWp" class="form-label">Dist to Wp</label>
+                            <input type="text" class="form-control" id="distToWp" name="distToWp" required>
+                            <div class="invalid-feedback">
+                              Please provide a valid zip.
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <label for="distToMav" class="form-label">Dist to Mav</label>
+                            <input type="text" class="form-control" id="distToMav" name="distToMav"  required>
+                            <div class="invalid-feedback">
+                              Please provide a valid zip.
+                            </div>
+                          </div>
+                                  <!-- Add other form fields here -->
+                              </form>
+                          </div>
+                      </div>
+                  </div>`
+              );
+          }
+      });
+
+      $("#master-form").submit(function(event){
+          event.preventDefault(); // Prevent the default form submission
+
+          let formDataArray = [];
+
+          $(".drone-form").each(function(index, form) {
+              formDataArray.push($(form).serialize());
+          });
+
+          let formData = formDataArray.join('&');
+
+          $.ajax({
+              type: "POST",
+              url: "/api/save_all_drones",
+              data: formData,
+              success: function(response) {
+                  console.log("Data saved successfully!");
+                  // Optionally, you can redirect or show a success message here
+              },
+              error: function(error) {
+                  console.error("Failed to save data!");
+              }
+          });
+      });
+  });
+</script>
+
+</body>
+</html>
